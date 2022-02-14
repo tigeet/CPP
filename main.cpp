@@ -3,15 +3,6 @@
 using namespace std;
 #include<math.h>
 
-class GeometryException : public exception {
-    private:
-        string message;
-    public:
-        GeometryException(string message_) : message(message_) {}
-        virtual const char* what() const throw () {
-            return message.c_str();
-        }
-};
 
 class Vector {
     public:
@@ -25,26 +16,21 @@ class Vector {
         Vector(double x_, double y_) : x(x_), y(y_) {}
 };
 
+
 class Point {
     public:
         double x;
         double y;
-        Point() { }
-        Point(double x_, double y_) {
-            x = x_;
-            y = y_;
-        }
 
+        Point() {}
+        Point(double x_, double y_) : x(x_), y(y_) { }
         ~Point() { }
+        Point(const Point& point_) : x(point_.x), y(point_.y){}
 
-        void operator=(Point p2) {
-            x = p2.x;
-            y = p2.y;
+        void operator=(Point& point_) { 
+            x = point_.x; 
+            y = point_.y;
         }
-
-        // double operator-(Point p2) {
-        //     return sqrt( pow(p2.x - x , 2) + pow(p2.y - y , 2));
-        // }
 
         Vector operator-(Point p2) {
             return Vector(p2.x - x, p2.y - y);
@@ -53,63 +39,63 @@ class Point {
         bool operator==(Point p2)  {
             return (x == p2.x && y == p2.y);
         }
+
 };
+
 
 class Line {
     private:
         vector<Point> points;
     
     public:
-        vector<Point> & get_points() {
-            return points;
-        }
-
-        Line(vector<Point> &points_) : points(points_){ }
-
-        Line(std::initializer_list<Point> points_) 
-        : points(points_) {}
-
+        Line(vector<Point> points_) : points(points_){ }
+        Line(std::initializer_list<Point> points_) : points(points_) {}
+        ~Line() {}
         Line(const Line & line) {
             points.resize(0);
             for (const Point & point : line.points)
                 points.push_back(point);
         }
 
-        void add(Point &point) {
-            points.push_back(point);
+        void loop() {
+            points.push_back(points[0]);
         }
 
-        friend std::ostream& operator<<(std::ostream& out, const Line &line);
-};
+        vector<Point> get_points() const {
+            return points;
+        }
 
-std::ostream& operator<<(std::ostream& out, const Line &line) {   
+        friend std::ostream& operator<<(std::ostream& out,  Line &line);
+};
+std::ostream& operator<<(std::ostream& out,  Line &line) {   
     int i = 0;
-	for (const auto point : line.points) {
+	for ( auto point : line.points) {
         out << ++i << ": (" << point.x << ", " << point.y << ")\n";
     }
 	return out;
 }
 
 
-
 class Chain : public Line {
-    private:
-        vector<Point> points;
     public:
-        Chain(vector<Point> &points_) :  Line(points_) { 
-                add(points_[0]);
+        Chain(vector<Point> points_) :  Line(points_) { 
+            loop();
         }
-
-        Chain(std::initializer_list<Point> points_) : Line(points_) {}
+        Chain(std::initializer_list<Point> points_) : Line(points_) { 
+            loop();
+        }
+        ~Chain() {}
+        Chain(const Chain& chain) : Line(chain.get_points()) { }
 };
 
 
 class Polygon : public Chain {
     public:
-        Polygon(vector<Point> &points_) :  Chain(points_) { }
+        Polygon(vector<Point> points_) :  Chain(points_) { }
+        Polygon(std::initializer_list<Point> points_) : Chain(points_) {}
+        ~Polygon() {}
+        Polygon(const Polygon & poly) : Chain(poly.get_points()) {}
 
-        Polygon(std::initializer_list<Point> &points_) : Chain(points_) {}
-        
         double Perimeter() {
             auto points = get_points();
             if (points.size() < 3)
@@ -143,37 +129,42 @@ class Polygon : public Chain {
 class Triangle : public Polygon {
     public:
         Triangle(vector<Point> &points_) :  Polygon(points_) { }
-
-        Triangle(std::initializer_list<Point> points_) : Polygon(points_) {
-            if (points_.size() != 3) 
-                throw GeometryException("Cannot create a triangle without 3 vertices");
-        }
+        Triangle(std::initializer_list<Point> points_) : Polygon(points_) { }
+        ~Triangle() {}
+        Triangle(const Triangle & triangle) : Polygon(triangle.get_points()) {}
 };
+
 
 class Trapezoid: public Polygon {
     public:
         Trapezoid(vector<Point> &points_) :  Polygon(points_) { }
-
-        Trapezoid(std::initializer_list<Point> points_) : Polygon(points_) {}
+        Trapezoid(std::initializer_list<Point> points_) : Polygon(points_) { }
+        ~Trapezoid() {}
+        Trapezoid(const Trapezoid & trapezoid) : Polygon(trapezoid.get_points()) {}
 };
+
+
 
 class RightPolygon : public Polygon {
     public:
         RightPolygon(vector<Point> &points_) :  Polygon(points_) { }
-
-        RightPolygon(std::initializer_list<Point> points_) : Polygon(points_) {}
+        RightPolygon(std::initializer_list<Point> points_) : Polygon(points_) { }
+        ~RightPolygon() {}
+        RightPolygon(const RightPolygon & rightPolygon) : Polygon(rightPolygon.get_points()) {}
 };
 
 
 
-
 int main() {
-    Point p1{1, 0};
-    Point p2{-1, 0};
-    Point p3{sqrt(2) / 2, sqrt(2) / 2};
+    Point p1 = Point(1, 0);    
+    Point p2= Point(-1, 0);
+    Point p3 = Point(sqrt(2) / 2, sqrt(2) / 2);
+    // Triangle line{p1, p2, p3};
     Point p4{-sqrt(2) / 2, sqrt(2) / 2};
     Point p5{sqrt(2) / 2, -sqrt(2) / 2};
     Point p6{-sqrt(2) / 2, -sqrt(2) / 2};
     RightPolygon poly = RightPolygon{p1, p3, p4, p2, p6, p5};
+        for (auto item : poly.get_points())
+        cout << item.x << ", " << item.y << "\n";
     return 0;
 }
