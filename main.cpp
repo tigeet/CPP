@@ -2,8 +2,8 @@
 #include <iostream>
 #include <string>
 
-#include "curl/curl.h"
-#include"nlohmann/json.hpp"
+#include<curl/curl.h>
+#include<nlohmann/json.hpp>
 using json = nlohmann::json;
 
 
@@ -15,12 +15,15 @@ static size_t my_write(void* buffer, size_t size, size_t nmemb, void* param) {
 }
 
 int main() {
+	std::cout << "message";
 	std::string result;
 	CURL* curl;
 	CURLcode res;
 	curl_global_init(CURL_GLOBAL_DEFAULT);
+	
 	curl = curl_easy_init();
 	if (curl) {
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
 		curl_easy_setopt(curl, CURLOPT_URL, "https://www.cbr-xml-daily.ru/daily_json.js");
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, my_write);
 		curl_easy_setopt(curl, CURLOPT_WRITEDATA, &result);
@@ -32,7 +35,7 @@ int main() {
 		}
 	}
 	curl_global_cleanup();
-	json j_complete = json::parse(result);
-    std::cout << std::setw(4) << j_complete["Valute"]["AUD"]["Value"] << std::endl;
-	// std::cout << result << "\n\n";
+	// json j_complete = json::parse(result);
+    // std::cout << std::setw(4) << j_complete["Valute"]["AUD"]["Value"] << std::endl;
+	std::cout << result << "\n\n";
 }

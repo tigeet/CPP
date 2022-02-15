@@ -1,3 +1,9 @@
+#custom
+*.txt
+*.in
+*.out
+*.json
+
 # Prerequisites
 *.d
 
