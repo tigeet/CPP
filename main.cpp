@@ -1,22 +1,23 @@
-#define CURL_STATICLIB
 #include <iostream>
 #include <string>
+#include<map>
+#include<vector>
+using namespace std;
 
+#include <cstdlib>
+#include<fstream>
+#define CURL_STATICLIB
 #include<curl/curl.h>
 #include<nlohmann/json.hpp>
 using json = nlohmann::json;
 
-
-static size_t my_write(void* buffer, size_t size, size_t nmemb, void* param) {
-	std::string& text = *static_cast<std::string*>(param);
-	size_t totalsize = size * nmemb;
-	text.append(static_cast<char*>(buffer), totalsize);
-	return totalsize;
+size_t my_write(void *ptr, size_t size, size_t count, void *stream) {
+    ((string*)stream)->append((char*)ptr, 0, size*count);
+    return size*count;
 }
 
-int main() {
-	std::cout << "message";
-	std::string result;
+json get_exchange_rates() {
+    string result;
 	CURL* curl;
 	CURLcode res;
 	curl_global_init(CURL_GLOBAL_DEFAULT);
@@ -31,11 +32,90 @@ int main() {
 		res = curl_easy_perform(curl);
 		curl_easy_cleanup(curl);
 		if (CURLE_OK != res) {
-			std::cerr << "CURL error: " << res << '\n';
+			cerr << "CURL error: " << res << '\n';
 		}
 	}
 	curl_global_cleanup();
-	// json j_complete = json::parse(result);
-    // std::cout << std::setw(4) << j_complete["Valute"]["AUD"]["Value"] << std::endl;
-	std::cout << result << "\n\n";
+	json j_complete = json::parse(result);
+    return j_complete;
+}
+
+
+
+vector<pair<string, double>> json_to_rates(json json_file) {
+    vector<pair<string, double>> res;
+    for (const auto &item : json_file["Valute"]) {
+        string code =  item["CharCode"].get<string>();
+        double rate = item["Value"].get<double>() / item["Nominal"].get<int>();
+        res.push_back(make_pair(code, rate));
+    }
+    return res;
+}
+
+// что за хуйня
+class Database {
+    private:
+        map<string, double> rates_sum; 
+        int iterations;
+    public:
+        Database() { iterations = 0;}
+        ~Database() {
+            cout << "destructor\n";
+        }
+
+        void load_rates(ofstream &out) {
+            ++iterations;
+
+            json json_file = get_exchange_rates();
+            auto res = json_to_rates(json_file);
+
+            for (auto pr : res) {
+                string code = pr.first;
+                double rate = pr.second;
+
+                if (rates_sum.count(code) == 0)
+                    rates_sum[code] = 0;
+                rates_sum[code] += rate;
+
+                out << code << ": " << rate << "\n"; 
+            }
+        }
+
+        void print_average(ofstream &out) {
+            for (auto pr : rates_sum) {
+                string code = pr.first;
+                double rate = pr.second;
+
+                out << code << ": " << rate / iterations << "\n"; 
+            }
+        }
+
+};
+
+const string DIR = "D:\\Desktop\\pr\\assets\\";
+Database *global_db;
+
+
+
+void at_exit() {
+    ofstream out (DIR + "avg.txt");
+    global_db->print_average(out);
+    out.close();
+}
+
+int main() {
+    Database db = Database();
+    global_db = &db;
+    atexit(at_exit);
+    int i = 0;
+    while (++i) {
+        string path = DIR + to_string(i) + ".txt";
+        freopen(path.c_str(), "w", stdout);
+        ofstream out (path);
+        db.load_rates(out);
+        out.close();
+        Sleep(3000);
+    }
+    // ofstream out (dir_path + "avg.txt");
+    // db.get_average(out);
 }
