@@ -52,18 +52,16 @@ vector<pair<string, double>> json_to_rates(json json_file) {
     return res;
 }
 
-// что за хуйня
+
 class Database {
     private:
         map<string, double> rates_sum; 
+        map<string, double> cache; 
         int iterations;
     public:
         Database() { iterations = 0;}
-        ~Database() {
-            cout << "destructor\n";
-        }
 
-        void load_rates(ofstream &out) {
+        void load_rates() {
             ++iterations;
 
             json json_file = get_exchange_rates();
@@ -75,7 +73,17 @@ class Database {
 
                 if (rates_sum.count(code) == 0)
                     rates_sum[code] = 0;
+                
+                cache[code] = rate;
                 rates_sum[code] += rate;
+            }
+        }
+
+        void print_rates(ofstream &out) {
+            out << "Exchange Rates #" << iterations << "\n";
+            for (auto pr : cache) {
+                string code = pr.first;
+                double rate = pr.second;
 
                 out << code << ": " << rate << "\n"; 
             }
@@ -92,30 +100,33 @@ class Database {
 
 };
 
-const string DIR = "D:\\Desktop\\pr\\assets\\";
-Database *global_db;
 
+const string DIR = "D:\\Desktop\\pr\\assets\\";
+Database * global_db;
 
 
 void at_exit() {
     ofstream out (DIR + "avg.txt");
+    out << "Average rates\n";
     global_db->print_average(out);
     out.close();
 }
 
+
+// мб надо изменить
 int main() {
     Database db = Database();
     global_db = &db;
     atexit(at_exit);
+
     int i = 0;
     while (++i) {
         string path = DIR + to_string(i) + ".txt";
         freopen(path.c_str(), "w", stdout);
         ofstream out (path);
-        db.load_rates(out);
+        db.load_rates();
+        db.print_rates(out);
         out.close();
         Sleep(3000);
     }
-    // ofstream out (dir_path + "avg.txt");
-    // db.get_average(out);
 }
