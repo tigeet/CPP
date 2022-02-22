@@ -14,9 +14,15 @@ class Poly {
             factors = f;
         }
         Poly() {}
+
         Poly(vector<double> factors_) : factors(factors_) {}
+
         Poly(const Poly&poly) {
             factors = poly.factors;
+        }
+
+        vector<double> get_factors() {
+            return factors;
         }
 
         friend std::ostream& operator<<(std::ostream& out, const Poly &poly);
@@ -60,29 +66,51 @@ class Poly {
             }
         }
 
-        vector<double> operator*(double k) {
-            int n = factors.size();
-            vector<double> res(n, 0);
-            for (int i = 0; i < factors.size(); ++i) {
-                res[i] = factors[i] * k;
-            }
-            return res;
-        }
 
-        vector<double> operator/(double k) {
+        Poly operator/(double k) {
             //k == 0
             int n = factors.size();
             vector<double> res(n, 0);
             for (int i = 0; i < factors.size(); ++i) {
                 res[i] = factors[i] / k;
             }
-            return res;
+            return Poly(res);
         }
 
-        void operator*=(double k) {
-            for (int i = 0; i < factors.size(); ++i) {
-                factors[i] = factors[i] * k;
+
+        Poly operator*(const Poly &poly2) {
+            vector<double> res(1, 0);
+            double val = 0;
+            int m = 0;
+            for (int pa = 0; pa < factors.size(); ++pa) {
+                for (int pb = 0; pb< poly2.factors.size(); ++pb) {
+                    if (pa + pb > m) {
+                        m = pa + pb;
+                        res.resize(m + 1, 0);
+                    }
+                    val = factors[pa] * poly2.factors[pb];
+                    res[pa + pb] += val;
+                }
             }
+            return Poly(res);
+        }
+
+
+        void operator*=(const Poly &poly2) {
+            vector<double> res(1, 0);
+            double val = 0;
+            int m = 0;
+            for (int pa = 0; pa < factors.size(); ++pa) {
+                for (int pb = 0; pb< poly2.factors.size(); ++pb) {
+                    if (pa + pb > m) {
+                        m = pa + pb;
+                        res.resize(m + 1, 0);
+                    }
+                    val = factors[pa] * poly2.factors[pb];
+                    res[pa + pb] += val;
+                }
+            }
+            update(res);
         }
 
         void operator/=(double k) {
@@ -122,7 +150,7 @@ std::ostream& operator<<(std::ostream& out, const Poly &p_) {
     auto poly = p_.factors;
     int p = poly.size() - 1;
     
-    if (poly[p] < 0)
+    if (p > 0 && poly[p] < 0)
         out << "-";
 
         if (abs(poly[p]) != 1) 
@@ -138,7 +166,7 @@ std::ostream& operator<<(std::ostream& out, const Poly &p_) {
     p -= 1;
     
     
-    for (p; p >= 0; --p) {
+    for (p; p > 0; --p) {
         double val = poly[p];
         if (poly[p] == 0)
             continue;
@@ -157,6 +185,13 @@ std::ostream& operator<<(std::ostream& out, const Poly &p_) {
             out << "x^" << p;
         else if (p == 1)
             out << 'x';
+    }
+
+    if (p == 0) {
+        if (poly[0] > 0)
+            out << " + " << poly[0];
+        else if (poly[0] < 0)
+            out << " - " << abs(poly[0]);
     }
     return out;
 }
@@ -232,8 +267,8 @@ int main() {
     // poly3 = poly2;
     Poly poly4, poly5;
     cin >> poly4 >> poly5;
-    
-    cout << poly4 + poly5;
+    poly4 *= poly5;
+    cout << poly4 << "\n" << poly5;
     // cout << (poly3 == poly2) << "\n" << (poly3 == poly1) << "\n" << (poly3 != poly1) << '\n';
     // poly3 += poly2;
     // poly1 *= 2;
