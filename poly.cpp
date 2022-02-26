@@ -1,41 +1,29 @@
-#include<iostream>
-#include<vector>
-using namespace std;
-#include<math.h>
+#include"poly.h"
 
 
-
-class Poly {
-    private:
-        vector<double> factors;
-    public:
-
-        void update(vector<double> f) {
+        void Poly::update(map<int, double> f) {
             factors = f;
         }
-        Poly() {}
+        Poly::Poly() {}
 
-        Poly(vector<double> factors_) : factors(factors_) {}
+        Poly::Poly(map<int, double> factors_) : factors(factors_) {}
 
-        Poly(const Poly&poly) {
-            factors = poly.factors;
-        }
 
-        vector<double> get_factors() {
-            return factors;
-        }
 
-        friend std::ostream& operator<<(std::ostream& out, const Poly &poly);
-        friend std::istream& operator>>(std::istream& in, Poly &poly);
+
         
 
-        void operator=(const Poly&poly) {
+        void Poly::operator=( Poly &poly) {
             factors = poly.factors;
         }
 
-        Poly operator+(Poly &poly2) {
+        Poly::Poly(const Poly&poly) {
+            factors = poly.factors;
+        }
+
+        Poly Poly::operator+(Poly &poly2) {
             int n = max(factors.size(), poly2.factors.size());
-            vector<double> res (n, 0);
+            map<int, double> res;
             for (int i = 0; i < n; ++i) {
                 res[i] = poly2.factors[i] + factors[i];
             }
@@ -43,23 +31,23 @@ class Poly {
         }
 
 
-        Poly operator- (Poly &poly2) {
+        Poly Poly::operator- (Poly &poly2) {
             int n = max(factors.size(), poly2.factors.size());
-            vector<double> res (n, 0);
+            map<int, double> res;
             for (int i = 0; i < n; ++i) {
                 res[i] = factors[i] - poly2.factors[i];
             }
             return Poly(res);
         }
 
-        void operator+= (Poly &poly2) {
+        void Poly::operator+= (Poly &poly2) {
             int n = max(factors.size(), poly2.factors.size());
             for (int i = 0; i < n; ++i) {
                 factors[i] = factors[i] + poly2.factors[i];
             }
         }
 
-        void operator-= (Poly &poly2) {
+        void Poly::operator-= (Poly &poly2) {
             int n = max(factors.size(), poly2.factors.size());
             for (int i = 0; i < n; ++i) {
                 factors[i] = factors[i] - poly2.factors[i];
@@ -67,10 +55,10 @@ class Poly {
         }
 
 
-        Poly operator/(double k) {
+        Poly Poly::operator/(double k) {
             //k == 0
             int n = factors.size();
-            vector<double> res(n, 0);
+            map<int, double> res;
             for (int i = 0; i < factors.size(); ++i) {
                 res[i] = factors[i] / k;
             }
@@ -78,16 +66,12 @@ class Poly {
         }
 
 
-        Poly operator*(const Poly &poly2) {
-            vector<double> res(1, 0);
+        Poly Poly::operator*( Poly &poly2) {
+            map<int, double> res;
             double val = 0;
             int m = 0;
             for (int pa = 0; pa < factors.size(); ++pa) {
                 for (int pb = 0; pb< poly2.factors.size(); ++pb) {
-                    if (pa + pb > m) {
-                        m = pa + pb;
-                        res.resize(m + 1, 0);
-                    }
                     val = factors[pa] * poly2.factors[pb];
                     res[pa + pb] += val;
                 }
@@ -96,15 +80,14 @@ class Poly {
         }
 
 
-        void operator*=(const Poly &poly2) {
-            vector<double> res(1, 0);
+        void Poly::operator*=(Poly &poly2) {
+            map<int, double> res;
             double val = 0;
             int m = 0;
             for (int pa = 0; pa < factors.size(); ++pa) {
                 for (int pb = 0; pb< poly2.factors.size(); ++pb) {
                     if (pa + pb > m) {
                         m = pa + pb;
-                        res.resize(m + 1, 0);
                     }
                     val = factors[pa] * poly2.factors[pb];
                     res[pa + pb] += val;
@@ -113,21 +96,21 @@ class Poly {
             update(res);
         }
 
-        void operator/=(double k) {
+        void Poly::operator/=(double k) {
         // k == 0
             for (int i = 0; i < factors.size(); ++i) {
                 factors[i] = factors[i] / k;
             }
         }
 
-        double operator[](int n) {
+        double Poly::operator[](int n) {
             if (n < factors.size())
                 return factors[n];
             else   
                 return 0;
         }
 
-        bool operator==(Poly &poly) {
+        bool Poly::operator==(Poly &poly) {
             int n = max(factors.size(), poly.factors.size());
             for (int i = 0; i < n; ++i) {
                 if (factors[i] != poly.factors[i])
@@ -136,7 +119,7 @@ class Poly {
             return true;
         }
 
-        bool operator!=(Poly &poly) {
+        bool Poly::operator!=(Poly &poly) {
             int n = max(factors.size(), poly.factors.size());
             for (int i = 0; i < n; ++i) {
                 if (factors[i] != poly.factors[i])
@@ -144,9 +127,8 @@ class Poly {
             }
             return false;
         }
-};
 
-std::ostream& operator<<(std::ostream& out, const Poly &p_) {
+std::ostream& operator<<(std::ostream& out,  Poly &p_) {
     auto poly = p_.factors;
     int p = poly.size() - 1;
     
@@ -200,7 +182,7 @@ std::ostream& operator<<(std::ostream& out, const Poly &p_) {
 std::istream& operator>>(std::istream& in, Poly &p_) {
     string str;
     in >> str;
-    vector<double> res(1, 0);
+    map<int, double> res;
     int mp = 0;
     int sign = 1;
     int l = 0, r = 0;
@@ -242,12 +224,6 @@ std::istream& operator>>(std::istream& in, Poly &p_) {
         } else {
             l = r;
         }
-
-
-        if (power > mp) {
-            mp = power;
-            res.resize(mp + 1, 0);
-        }
         res[power] = value;
     }
     p_.factors = res;
@@ -259,8 +235,8 @@ int main() {
     // 5x^4 - 3x^3 + 3;  5 -3 0 0 3
     // x^3 + 2x^2 - x;   1 2 -1 0
     // string test2 = "-51x^12";
-    // vector<double> seq1 = {3, 0, 0, -3, -5};
-    // vector<double> seq2 = {0, -1, 2, 1};
+    // map<int, double> seq1 = {3, 0, 0, -3, -5};
+    // map<int, double> seq2 = {0, -1, 2, 1};
     // Poly poly1 = Poly(seq1);
     // Poly poly2 = Poly(seq2);
     // Poly poly3 = Poly(seq1);
