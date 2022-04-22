@@ -4,6 +4,119 @@ using namespace std;
 #include <iterator>
 #include <cstddef>
 
+class Algorithms {
+
+private:
+
+public:
+    template<class InputIterator, class UnaryPredicate>
+    bool all_of(InputIterator first, InputIterator last, UnaryPredicate pred) {
+        while (first != last) {
+            if (!pred(*first)) return false;
+            ++first;
+        }
+        return true;
+    }
+
+    template<class InputIterator, class UnaryPredicate>
+    bool none_of(InputIterator first, InputIterator last, UnaryPredicate pred) {
+        while (first != last) {
+            if (pred(*first)) return false;
+            ++first;
+        }
+        return true;
+    }
+
+    template<class InputIterator, class UnaryPredicate>
+    bool any_of(InputIterator first, InputIterator last, UnaryPredicate pred) {
+        while (first != last) {
+            if (pred(*first)) return true;
+            ++first;
+        }
+        return false;
+    }
+
+    template<class InputIterator, class UnaryPredicate>
+    bool one_of(InputIterator first, InputIterator last, UnaryPredicate pred) {
+    int cnt = 0;
+        while (first != last) {
+            if (pred(*first)){
+                cnt++;
+            }
+            ++first;
+        }
+        if (cnt == 1)
+            return true;
+        else
+            return false;
+    }
+
+    template <class ForwardIterator>
+    bool is_sorted (ForwardIterator first, ForwardIterator last)
+    {
+        if (first==last) return true;
+        ForwardIterator next = first;
+        while (++next!=last) {
+            if (*next<*first)     // or, if (comp(*next,*first)) for version (2)
+                return false;
+            ++first;
+        }
+        return true;
+    }
+
+    template <class InputIterator, class UnaryPredicate>
+    bool is_partitioned (InputIterator first, InputIterator last, UnaryPredicate pred)
+    {
+        while (first!=last && pred(*first)) {
+            ++first;
+        }
+        while (first!=last) {
+            if (pred(*first)) return false;
+            ++first;
+        }
+        return true;
+    }
+
+    template<class A, class T>
+    A find_not (A first, A last, const T& val)
+    {
+        while (first != last) {
+            if (*first!=val) return first;
+            ++first;
+        }
+        return last;
+    }
+
+    template<class InputIterator, class T>
+    InputIterator find_backward (InputIterator first, InputIterator last, const T& val)
+    {
+        while (last!=first) {
+            if (*last==val) return last;
+            --last;
+        }
+        return first;
+    }
+
+    template <class ForwardIterator, class UnaryPredicate>
+    bool is_polindrome (ForwardIterator first, ForwardIterator last, UnaryPredicate pred)
+    {
+        vector<bool> res;
+
+        while (first!=last) {
+            res.push_back(pred(*first));
+            ++first;
+        }
+
+        for (int i = 0, j = res.size() - 1; i < j; ++i, --j)
+            if (res[i] != res[j])
+                return false;
+
+        return true;
+
+    }
+
+
+};
 
 
 template<typename Type>
@@ -296,16 +409,6 @@ class Container {
 };
 
 
-
-
-template<class A, class T>
-A find_not (A first, A last, const T& val) {
-    while (first != last) {
-        if (*first!=val) return first;
-        ++first;
-    }
-    return last;
-}
 
 
 
