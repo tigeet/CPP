@@ -1,0 +1,10 @@
+at proj directory:
+    mkdir build
+    cd build 
+    cmake ../
+    cmake --build .
+    .\Debug\mtest.exe
+
+
+poly<[point], 0, [coefficients from x^0 to x^max]>();
+ex: poly<7, 0, -13, -30, -21, -4, 71, -7>();  <==> -13 -30x - 21x^2 - 4x^3 + 71x^4 - 7x^5  at x = 7 
